@@ -7,7 +7,6 @@ import tensorflow as tf
 import math
 
 class Sequence(tf.keras.utils.Sequence):
-
     def __init__(self, image_set, label_set, batch_size):
         self.images, self.labels = image_set, label_set
         self.batch_size = batch_size
@@ -16,9 +15,10 @@ class Sequence(tf.keras.utils.Sequence):
         return math.ceil(len(self.images) / self.batch_size)
 
     def prepare_input(self, image):
-
+        # add 1 after image
         image = np.reshape(image, image.shape+(1,))
-        image = np.reshape(image,(1,)+image.shape)
+        # add 1 before image ? no batch?
+        #image = np.reshape(image,(1,)+image.shape)
         image = np.clip(image, 0, 255)
         return np.divide(image, 255)
 
@@ -31,12 +31,9 @@ class Sequence(tf.keras.utils.Sequence):
         labels = []
         for (image, label) in zip(self.images[low:high], self.labels[low:high]):
             (image, label) = dip.preprocessor(image, label)
+            prepared = self.prepare_input(image)
             labels.append(self.prepare_input(label))
-            # images.append(self.prepare_input(image))
-            images.append(image)
-
-        # TODO: some shape issue
-        print(np.array(images).shape)
+            images.append(prepared)
         return np.array(images), np.array(labels)
 
 def augmentation(n=1):

@@ -3,15 +3,16 @@ from util import path, generator
 from nn import nn
 import argparse
 
-### python main.py --dip=example --tolabel ?
+# Step 0: automatic label generation if no label
+### python main.py --dip=rice --tolabel
 # Step 1:
-### python main.py --dataset=example --dip=example --augmentation=0000
+### python main.py --dataset=rice --augmentation=10000
 # Step 2: train
-### python main.py --dataset=example --gpu --train
+### python main.py --dataset=rice --gpu --train
 # Step3: test
-### python main.py --dataset=example --arch=example --dip=example --gpu --test
+### python main.py --dataset=rice --gpu --test
 
-### python main.py --dataset=rice --dip=example --arch=example --augmentation=100  --gpu --train
+### python main.py --dataset=rice --arch=example --augmentation=100  --gpu --train
 def main():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--tolabel", help="Preprocess images to create labels (out/tolabel)", action="store_true", default=False)

@@ -63,7 +63,6 @@ def model(weights_input=None):
     return model
 
 def prepare_input(image):
-
     image = np.reshape(image, image.shape+(1,))
     image = np.reshape(image,(1,)+image.shape)
     image = np.clip(image, 0, 255)
