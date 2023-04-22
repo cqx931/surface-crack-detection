@@ -5,8 +5,9 @@ import numpy as np
 import cv2
 
 def fetch_from_path(images):
+    cv2.imread(file, cv2.IMREAD_GRAYSCALE)
     image_list = sorted(glob(path.join(images, const.FILTER)))
-    image = np.array([cv2.imread(item, 1) for item in image_list])
+    image = np.array([cv2.imread(item, cv2.IMREAD_GRAYSCALE) for item in image_list])
     return image
 
 def fetch_from_paths(images, labels):
@@ -21,8 +22,8 @@ def fetch_from_paths(images, labels):
         for i, l in zip(img_fetch, lab_fetch):
             image_list.append(i)
             label_list.append(l)
-
-    image = np.array([cv2.imread(item, 1) for item in image_list])
+    # issue
+    image = np.array([cv2.imread(item, 1) for item in image_list], dtype=object)
     label = np.array([cv2.imread(item, 1) for item in label_list])
     return image, label
 

@@ -1,4 +1,5 @@
-from keras.models import Input
+#from keras.models import Input
+from tensorflow.keras.layers import Input
 from keras.engine.training import Model
 from keras.layers import Conv2D, MaxPooling2D, Dropout, UpSampling2D, Concatenate
 from keras.optimizers import Adam
@@ -62,6 +63,7 @@ def model(weights_input=None):
     return model
 
 def prepare_input(image):
+
     image = np.reshape(image, image.shape+(1,))
     image = np.reshape(image,(1,)+image.shape)
     image = np.clip(image, 0, 255)

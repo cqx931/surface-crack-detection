@@ -4,9 +4,11 @@ from dip import dip
 import setting.constant as const
 import importlib
 import sys
+import tensorflow as tf
+import numpy as np
 
 class NeuralNetwork():
-    def __init__(self): 
+    def __init__(self):
         self.arch = importlib.import_module("%s.%s.%s" % (const.dn_NN, const.dn_ARCH, const.MODEL))
 
         self.fn_logger = path.fn_logger()
@@ -31,7 +33,19 @@ class NeuralNetwork():
     def has_checkpoint(self):
         return self.fn_checkpoint if path.exist(self.fn_checkpoint) else None
 
+    def compile_tf_data(self, images, labels=None):
+        # prepare input
+        processed_labels = [tf.convert_to_tensor(self.arch.prepare_input(np.asarray(label).astype('float32'))) for label in labels]
+        processed_images = [tf.convert_to_tensor(self.arch.prepare_input(np.asarray(image).astype('float32'))) for image in images]
+        # label works, but convert to tensor doesn't work on image
+        print(tf.shape(processed_labels))
+        print(tf.shape(processed_images))
+        dataset = tf.data.Dataset.from_tensor_slices([processed_images, processed_labels])
+        return dataset
+
     def prepare_data(self, images, labels=None):
+        # yield returns generator data type
+        # https://stackoverflow.com/questions/55727074/how-to-change-python-generator-into-keras-sequence-object
         if (labels is None):
             for (i, image) in enumerate(images):
                 number = ("%0.3d" % (i+1))
@@ -81,11 +95,11 @@ def train():
 
     images, labels = data.fetch_from_paths([nn.dn_image, nn.dn_aug_image], [nn.dn_label, nn.dn_aug_label])
     images, labels, v_images, v_labels = misc.random_split_dataset(images, labels, const.p_VALIDATION)
-    
+
     epochs, steps_per_epoch, validation_steps = misc.epochs_and_steps(len(images), len(v_images))
 
-    print("Train size:\t\t%s |\tSteps per epoch: \t%s\nValidation size:\t%s |\tValidation steps:\t%s\n" 
-        % misc.str_center(len(images), steps_per_epoch, len(v_images), validation_steps))
+    print("Train size:\t\t%s | Epoch: \t\t%s |\tSteps per epoch: \t%s\nValidation size:\t%s |\tValidation steps:\t%s\n"
+        % misc.str_center(len(images), epochs, steps_per_epoch, len(v_images), validation_steps))
 
     patience, patience_early = const.PATIENCE, int(epochs*0.25)
     loop, past_monitor = 0, float('inf')
@@ -96,18 +110,33 @@ def train():
 
     while True:
         loop += 1
-        h = nn.model.fit_generator(
+        training_seq = gen.Sequence(images, labels, const.BATCH_SIZE)
+        testing_seq = gen.Sequence(v_images, v_labels, const.BATCH_SIZE)
+        h = nn.model.fit( # original: model.fit_generator
+            training_seq,
             shuffle=True,
-            generator=nn.prepare_data(images, labels),
             steps_per_epoch=steps_per_epoch,
             epochs=epochs,
             validation_steps=validation_steps,
-            validation_data=nn.prepare_data(v_images, v_labels),
-            use_multiprocessing=True,
+            validation_data=testing_seq,
+            use_multiprocessing=False,
             callbacks=[checkpoint, early_stopping, logger])
 
+        # h = nn.model.fit( # original: model.fit_generator
+        #     nn.prepare_data(images,labels),
+        #     shuffle=True,
+        #     steps_per_epoch=steps_per_epoch,
+        #     epochs=epochs,
+        #     validation_steps=validation_steps,
+        #     validation_data=nn.prepare_data(v_images,v_labels),
+        #     use_multiprocessing=False,
+        #     callbacks=[checkpoint, early_stopping, logger])
+        # TODO: can't use multiprocessing, because can't pickle generator
+        # Solution:
+        # https://stackoverflow.com/questions/70115966/fit-generator-with-yield-generator-cannot-pickle-generator-object
+
         val_monitor = h.history[const.MONITOR]
-        
+
         if ("loss" in const.MONITOR):
             val_monitor = min(val_monitor)
             improve = (past_monitor - val_monitor)
@@ -139,7 +168,7 @@ def test(nn=None):
         images = data.fetch_from_path(nn.dn_test)
         generator = nn.prepare_data(images)
 
-        results = nn.model.predict_generator(generator, len(images), verbose=1)
+        results = nn.model.predict(generator, len(images), verbose=1)
         nn.save_predict(images, results)
     else:
         print(">> Model not found (%s)\n" % nn.fn_checkpoint)
