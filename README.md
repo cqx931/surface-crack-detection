@@ -1,3 +1,9 @@
+## notes
+- Install tensorflow on mac m1
+https://github.com/deganza/Install-TensorFlow-on-Mac-M1-GPU/blob/main/Install-TensorFlow-on-Mac-M1-GPU.ipynb
+- environment is set with conda `conda activate base`
+
+
 ## Surface Crack Detection
 
 Digital image processing class project, master degree, UPE - POLI (2018.2)
