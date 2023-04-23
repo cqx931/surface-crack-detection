@@ -1,11 +1,10 @@
 ''' Default '''
 DATASET = "cracktile"
-IMG_PROCESSING = "simple"
+IMG_PROCESSING = "cracktile" # simple doesn't work so well on rice data
 MODEL = "unet"
 
 IMAGE_SIZE = (256,256,1)
 FILTER = "*[0-9].*"
-BATCH_SIZE = 70
 ### Blue, Green, Red
 BACKGROUND_COLOR = [255, 120, 110]
 SEGMENTATION_COLOR = [0, 0, 255]

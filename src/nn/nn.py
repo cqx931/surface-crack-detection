@@ -110,8 +110,8 @@ def train():
 
     while True:
         loop += 1
-        training_seq = gen.Sequence(images, labels, const.BATCH_SIZE)
-        testing_seq = gen.Sequence(v_images, v_labels, const.BATCH_SIZE)
+        # training_seq = gen.Sequence(images, labels, const.BATCH_SIZE)
+        # testing_seq = gen.Sequence(v_images, v_labels, const.BATCH_SIZE)
         # h = nn.model.fit( # original: model.fit_generator
         #     training_seq,
         #     shuffle=True,
