@@ -5,7 +5,6 @@ import numpy as np
 import cv2
 
 def fetch_from_path(images):
-    cv2.imread(file, cv2.IMREAD_GRAYSCALE)
     image_list = sorted(glob(path.join(images, const.FILTER)))
     image = np.array([cv2.imread(item, cv2.IMREAD_GRAYSCALE) for item in image_list])
     return image
@@ -16,7 +15,6 @@ def fetch_from_paths(images, labels):
     for img, lab in zip(images, labels):
         img_fetch = sorted(glob(path.join(img, const.FILTER)))
         lab_fetch = sorted(glob(path.join(lab, const.FILTER)))
-
         img_fetch, lab_fetch = misc.shuffle(img_fetch, lab_fetch)
 
         for i, l in zip(img_fetch, lab_fetch):

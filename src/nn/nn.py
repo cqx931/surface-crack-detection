@@ -112,25 +112,25 @@ def train():
         loop += 1
         training_seq = gen.Sequence(images, labels, const.BATCH_SIZE)
         testing_seq = gen.Sequence(v_images, v_labels, const.BATCH_SIZE)
-        h = nn.model.fit( # original: model.fit_generator
-            training_seq,
-            shuffle=True,
-            steps_per_epoch=steps_per_epoch,
-            epochs=epochs,
-            validation_steps=validation_steps,
-            validation_data=testing_seq,
-            use_multiprocessing=False,
-            callbacks=[checkpoint, early_stopping, logger])
-
         # h = nn.model.fit( # original: model.fit_generator
-        #     nn.prepare_data(images,labels),
+        #     training_seq,
         #     shuffle=True,
         #     steps_per_epoch=steps_per_epoch,
         #     epochs=epochs,
         #     validation_steps=validation_steps,
-        #     validation_data=nn.prepare_data(v_images,v_labels),
-        #     use_multiprocessing=False,
+        #     validation_data=testing_seq,
+        #     use_multiprocessing=True,
         #     callbacks=[checkpoint, early_stopping, logger])
+
+        h = nn.model.fit( # original: model.fit_generator
+            nn.prepare_data(images,labels),
+            shuffle=True,
+            steps_per_epoch=steps_per_epoch,
+            epochs=epochs,
+            validation_steps=validation_steps,
+            validation_data=nn.prepare_data(v_images,v_labels),
+            use_multiprocessing=False,
+            callbacks=[checkpoint, early_stopping, logger])
         # TODO: can't use multiprocessing, because can't pickle generator
         # Solution:
         # https://stackoverflow.com/questions/70115966/fit-generator-with-yield-generator-cannot-pickle-generator-object
