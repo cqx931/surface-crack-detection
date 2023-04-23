@@ -1,6 +1,6 @@
 ''' Default '''
 DATASET = "cracktile"
-IMG_PROCESSING = "cracktile" # simple doesn't work so well on rice data
+IMG_PROCESSING = "rice" # simple doesn't work so well on rice data
 MODEL = "unet"
 
 IMAGE_SIZE = (256,256,1)
