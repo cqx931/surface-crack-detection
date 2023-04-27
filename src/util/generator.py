@@ -5,6 +5,7 @@ import setting.constant as const
 import numpy as np
 import tensorflow as tf
 import math
+import re
 
 class Sequence(tf.keras.utils.Sequence):
     def __init__(self, image_set, label_set, batch_size):
@@ -86,11 +87,11 @@ def tolabel():
     dn_tolabel = path.out(const.dn_TOLABEL, mkdir=False)
     if path.exist(dn_tolabel):
         dir_save = path.out(const.dn_TOLABEL)
-        images = data.fetch_from_path(dir_save)
-
+        images, image_list = data.fetch_from_path_name(dir_save)
+        print(len(images))
         for (i, image) in enumerate(images):
             path_save = path.join(dir_save, "label", mkdir=True)
-            file_name = ("%0.3d.png" % (i+1))
+            file_name =re.sub(r'^.*?p', 'p', image_list[i])
             file_save = path.join(path_save, file_name)
 
             img_pp, _ = dip.preprocessor(image, None)

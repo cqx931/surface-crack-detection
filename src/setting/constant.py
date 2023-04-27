@@ -1,5 +1,5 @@
 ''' Default '''
-DATASET = "cracktile"
+DATASET = "crackconcrete"
 IMG_PROCESSING = "rice" # simple doesn't work so well on rice data
 MODEL = "unet"
 
@@ -30,7 +30,7 @@ dn_LABEL = "label"
 # > project level
 dn_OUT = "out"
 # >> out level
-dn_TOLABEL = "tolabel"
+dn_TOLABEL = "label"
 
 # > src level
 dn_NN = "nn"

@@ -6,7 +6,7 @@ import argparse
 # Step 0: automatic label generation if no label
 ### python main.py --dip=rice --tolabel
 # Step 1:
-### python main.py --dataset=rice --augmentation=10000
+### python main.py --dataset=rice --augmentation=1000
 # Step 2: train
 ### python main.py --dataset=rice --gpu --train
 # Step3: test

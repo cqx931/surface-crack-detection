@@ -5,7 +5,7 @@ import cv2
 def overlay(image, layer):
     if (len(layer.shape) == 2):
         layer = cv2.cvtColor(layer, cv2.COLOR_GRAY2BGR)
-    
+
     image = cv2.cvtColor(image, cv2.COLOR_BGR2BGRA)
     layer = cv2.cvtColor(layer, cv2.COLOR_BGR2BGRA)
 
@@ -21,11 +21,98 @@ def light(image, bright, contrast):
     image = np.clip(image, 0, 255)
     return np.uint8(image)
 
+def contour(image, canvas):
+    thresh = cv2.threshold(image, 25, 255, cv2.THRESH_BINARY)[1]
+    # apply morphology
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9,9))
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3,1))
+    morph = cv2.morphologyEx(morph, cv2.MORPH_CLOSE, kernel)
+
+    # # get external contours
+    cnts = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+
+    # draw white contour on black background
+    for c in cnts:
+        perimeter = cv2.arcLength(c, True)
+        if perimeter > 200:
+            cv2.drawContours(canvas, [c], 0, 255, 1)
+
+    return (canvas, cnts)
+
+def removePixelsOutsite(image, contours):
+    big_contour = max(contours, key=cv2.contourArea)
+
+    # draw filled contour on black background
+    mask = np.zeros_like(image)
+    cv2.drawContours(mask, [big_contour], 0, (255,255,255), -1)
+    new_image = cv2.bitwise_and(image, mask)
+    return new_image
+
+def brightness(image):
+    if len(image.shape) == 3:
+        # Colored RGB or BGR (*Do Not* use HSV images with this function)
+        # create brightness with euclidean norm
+        return np.average(norm(image, axis=2)) / np.sqrt(3)
+    else:
+        # Grayscale
+        return np.average(image)
+
+def automatic_brightness_and_contrast(image, clip_hist_percent=1):
+    # Calculate grayscale histogram
+    hist = cv2.calcHist([image],[0],None,[256],[0,256])
+    hist_size = len(hist)
+
+    # Calculate cumulative distribution from the histogram
+    accumulator = []
+    accumulator.append(float(hist[0]))
+    for index in range(1, hist_size):
+        accumulator.append(accumulator[index -1] + float(hist[index]))
+
+    # Locate points to clip
+    maximum = accumulator[-1]
+    clip_hist_percent *= (maximum/100.0)
+    clip_hist_percent /= 2.0
+
+    # Locate left cut
+    minimum_gray = 0
+    while accumulator[minimum_gray] < clip_hist_percent:
+        minimum_gray += 1
+
+    # Locate right cut
+    maximum_gray = hist_size -1
+    while accumulator[maximum_gray] >= (maximum - clip_hist_percent):
+        maximum_gray -= 1
+
+    # Calculate alpha and beta values
+    alpha = 255 / (maximum_gray - minimum_gray)
+    beta = -minimum_gray * alpha
+
+    '''
+    # Calculate new histogram with desired range and show histogram
+    new_hist = cv2.calcHist([gray],[0],None,[256],[minimum_gray,maximum_gray])
+    plt.plot(hist)
+    plt.plot(new_hist)
+    plt.xlim([0,256])
+    plt.show()
+    '''
+
+    auto_result = cv2.convertScaleAbs(image, alpha=alpha, beta=beta)
+    return (auto_result, alpha, beta)
+
 def threshold(image, min_limit=None, max_limit=255, clip=0):
     if min_limit is None:
         min_limit = int(np.mean(image) + clip)
-
+        # change from binary to otsu?
     _, image = cv2.threshold(image, min_limit, max_limit, cv2.THRESH_BINARY)
+    return np.uint8(image)
+
+def threshold_otsu(image, min_limit=None, max_limit=255, clip=0):
+    if min_limit is None:
+        min_limit = int(np.mean(image) + clip)
+        # change from binary to otsu?
+    _, image = cv2.threshold(image,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
     return np.uint8(image)
 
 def gauss_filter(image, kernel=(3,3), iterations=1):
@@ -42,7 +129,7 @@ def equalize_light(image, limit=3, grid=(7,7), gray=False):
     if (len(image.shape) == 2):
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR)
         gray = True
-    
+
     clahe = cv2.createCLAHE(clipLimit=limit, tileGridSize=grid)
     lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
     l, a, b = cv2.split(lab)
@@ -51,7 +138,7 @@ def equalize_light(image, limit=3, grid=(7,7), gray=False):
     limg = cv2.merge((cl,a,b))
 
     image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
-    if gray: 
+    if gray:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     return np.uint8(image)

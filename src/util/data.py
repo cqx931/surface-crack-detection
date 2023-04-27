@@ -9,6 +9,11 @@ def fetch_from_path(images):
     image = np.array([cv2.imread(item, cv2.IMREAD_GRAYSCALE) for item in image_list])
     return image
 
+def fetch_from_path_name(images):
+    image_list = sorted(glob(path.join(images, const.FILTER)))
+    image = np.array([cv2.imread(item, cv2.IMREAD_GRAYSCALE) for item in image_list])
+    return image, image_list
+
 def fetch_from_paths(images, labels):
     image_list, label_list = [], []
 
