@@ -19,7 +19,7 @@ def image_preprocessor(image):
     #     image = cv2.bitwise_not(image)
 
     image = im.gauss_filter(image, (3,3))
-    image = im.light(image, bright=0, contrast=40)
+    image = im.light(image, bright=0, contrast=20)
 
     # the bigger the kernel, more fractal the label is
     # kernel = np.ones((5,5), np.uint8)
@@ -27,11 +27,30 @@ def image_preprocessor(image):
     # mask = cv2.dilate(image, kernel, iterations=1)
     # image = np.subtract(image, mask)
 
-    image = im.otsu(image)
+    # image = im.otsu(image)
     image, contour = im.contour(ref_image, image)
     image = im.removePixelsOutsite(image, contour)
-
+    image = mark_orientation(image, contour)
     return image
+
+def mark_orientation(img, contours):
+    img_o = img.copy()
+    img_o = cv2.cvtColor(img_o,cv2.COLOR_GRAY2BGR)
+
+    for i, c in enumerate(contours):
+      # Calculate the area of each contour
+      area = cv2.contourArea(c)
+      print(area)
+      # Ignore contours that are too small or too large
+      if area < 10000:
+        continue
+
+      # Draw each contour only for visualisation purposes
+      cv2.drawContours(img_o, contours, i, (255,0,0), 1)
+
+      # Find the orientation of each shape
+      angle = im.getOrientation(c, img_o)
+    return img_o
 
 def label_preprocessor(label):
     label = cv2.cvtColor(label, cv2.COLOR_BGR2GRAY)
